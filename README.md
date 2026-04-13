@@ -36,12 +36,19 @@ Offline-first wallet seed generator for air-gapped environments.
 
 ### Installation
 
+#### Download a Release Asset
+
+- For offline x86-64 Linux systems, including Tails, prefer the release asset named
+  `airseed-x86_64-unknown-linux-musl`.
+- For Apple Silicon macOS, use `airseed-aarch64-apple-darwin`.
+- For Windows x86-64, use `airseed-x86_64-pc-windows-msvc.exe`.
+
 #### Build from Source
 
 ```sh
 git clone https://github.com/hack-ink/airseed
 cd airseed
-cargo build --release
+cargo build --profile final-release
 ```
 
 ### Interaction
