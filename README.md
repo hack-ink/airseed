@@ -1,28 +1,36 @@
 <div align="center">
 
-# name_placeholder
+# airseed
 
-description_placeholder
+Offline-first wallet seed generator for air-gapped environments.
 
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Docs](https://img.shields.io/docsrs/name_placeholder)](https://docs.rs/name_placeholder)
-[![Language Checks](https://github.com/hack-ink/name_placeholder/actions/workflows/language.yml/badge.svg?branch=main)](https://github.com/hack-ink/name_placeholder/actions/workflows/language.yml)
-[![Release](https://github.com/hack-ink/name_placeholder/actions/workflows/release.yml/badge.svg)](https://github.com/hack-ink/name_placeholder/actions/workflows/release.yml)
-[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/hack-ink/name_placeholder)](https://github.com/hack-ink/name_placeholder/tags)
-[![GitHub last commit](https://img.shields.io/github/last-commit/hack-ink/name_placeholder?color=red&style=plastic)](https://github.com/hack-ink/name_placeholder)
-[![GitHub code lines](https://tokei.rs/b1/github/hack-ink/name_placeholder)](https://github.com/hack-ink/name_placeholder)
+[![Language Checks](https://github.com/hack-ink/airseed/actions/workflows/language.yml/badge.svg?branch=main)](https://github.com/hack-ink/airseed/actions/workflows/language.yml)
+[![Release](https://github.com/hack-ink/airseed/actions/workflows/release.yml/badge.svg)](https://github.com/hack-ink/airseed/actions/workflows/release.yml)
 
 </div>
 
 ## Feature Highlights
 
-### TODO
-
-TODO
+- Generate fresh BIP39 mnemonics from a small offline-first Rust CLI.
+- Derive the default EVM wallet material from a fresh or existing mnemonic.
+- Intended for air-gapped workflows, not a full wallet.
+- Explicit safety boundary: no hand-rolled cryptography, no default secret persistence, and no
+  network path in the generation flow.
+- Current strongest no-hardware route documented in this repo: prepare a Tails USB on Windows and
+  boot it on compatible x86-64 hardware.
 
 ## Status
 
-TODO
+- Project direction: minimal offline mnemonic and key material generator.
+- Current implementation state: `generate` and `derive` commands are implemented.
+- Current output surface: English BIP39 mnemonic, default `m/44'/60'/0'/0/0` child key material,
+  and EVM address derivation.
+- Safety status: usable as a minimal tool, but still unaudited and not positioned as the safest
+  choice for real funds.
+- Production recommendation today: use a hardware wallet for real assets.
+- Current fallback recommendation without hardware wallet: boot Tails from USB, generate offline,
+  handwrite the mnemonic, and power the machine off.
 
 ## Usage
 
@@ -31,58 +39,95 @@ TODO
 #### Build from Source
 
 ```sh
-# Clone the repository.
-git clone https://github.com/hack-ink/name_placeholder
-cd name_placeholder
-
-# To install Rust on macOS and Unix, run the following command.
-#
-# To install Rust on Windows, download and run the installer from `https://rustup.rs`.
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable
-
-# Install the necessary dependencies. (Unix only)
-# Using Ubuntu as an example, this really depends on your distribution.
-sudo apt-get update
-sudo apt-get install <DEPENDENCIES>
-
-# Build the project, and the binary will be available at `target/release/name_placeholder`.
+git clone https://github.com/hack-ink/airseed
+cd airseed
 cargo build --release
-
-# If you are a macOS user and want to have a `name_placeholder.app`, run the following command.
-# Install `cargo-bundle` to pack the binary into an app.
-cargo install cargo-bundle
-# Pack the app, and the it will be available at `target/release/bundle/osx/name_placeholder.app`.
-cargo bundle --release
 ```
-
-#### Download Pre-built Binary
-
-- **macOS**
-    - Download the latest pre-built binary from [GitHub Releases](https://github.com/hack-ink/name_placeholder/releases/latest).
-- **Windows**
-    - TODO
-- **Unix**
-    - TODO
-
-### Configuration
-
-#### TODO
-
-TODO
 
 ### Interaction
 
-TODO
+Generate a fresh 24-word mnemonic and derive the default EVM address:
 
-### Update
+```sh
+cargo run -- generate
+```
 
-TODO
+Generate a 12-word mnemonic and include the derived private key:
+
+```sh
+cargo run -- generate --words 12 --show-private-key
+```
+
+Derive the same wallet material from an existing mnemonic through standard input:
+
+```sh
+printf '%s\n' 'test test test test test test test test test test test junk' \
+  | cargo run -- derive --stdin --show-private-key
+```
+
+Echo the mnemonic during `derive` only when you intentionally want it in stdout:
+
+```sh
+printf '%s\n' 'test test test test test test test test test test test junk' \
+  | cargo run -- derive --stdin --show-mnemonic
+```
+
+Cross-check the derived address with `ethers.js` in a separate implementation:
+
+```sh
+npm install
+printf '%s\n' 'test test test test test test test test test test test junk' \
+  | npm run cross-check -- --stdin --expected 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+```
+
+### Safety Notes
+
+- The target tool should stay minimal, auditable, and offline-first.
+- Do not implement wallet cryptography from scratch. Use maintained crates in the class of
+  `bip39`, `bip32`, `rand_core::OsRng`, and `zeroize`.
+- Prefer `derive --stdin` over passing a mnemonic directly in command arguments, because shell
+  history may retain command lines.
+- `derive --stdin` and `npm run cross-check -- --stdin` do not echo the mnemonic unless
+  `--show-mnemonic` is explicitly set.
+- Prefer `cross-check` over `double check` when you are verifying the same mnemonic and path in an
+  independent implementation.
+- Do not treat Docker as a no-trace boundary.
+- Treat virtual machines as a lower-trust fallback than a live USB boot.
+- On commodity computers, the goal is to reduce residue, not to prove the complete absence of
+  traces.
+
+### Documentation
+
+- [Project boundaries](docs/spec/project-boundaries.md)
+- [Offline generation runbook](docs/runbook/offline-generation.md)
+- [Environment decision record](docs/decisions/offline-generation-environment.md)
+
+### References
+
+- [Tails home](https://tails.net/)
+- [Install Tails from macOS](https://tails.net/install/mac/)
+- [Install Tails from Windows](https://tails.net/install/windows/)
+- [Running Tails in a virtual machine](https://tails.net/doc/advanced_topics/virtualization/index.en.html)
+- [Docker Engine security](https://docs.docker.com/engine/security/)
+- [Docker tmpfs mounts](https://docs.docker.com/engine/storage/tmpfs/)
+- [Ethereum security guidance](https://ethereum.org/security/)
 
 ## Development
 
 ### Architecture
 
-TODO
+- `src/cli.rs` defines the command-line interface and command dispatch.
+- `src/wallet.rs` owns mnemonic generation, key derivation, and Ethereum address formatting.
+- `docs/spec/project-boundaries.md` defines the future implementation boundary.
+- `docs/runbook/offline-generation.md` defines the recommended operator workflow.
+
+### Checks
+
+```sh
+cargo make checks
+cargo make test
+cargo run -- --help
+```
 
 ## Support Me
 

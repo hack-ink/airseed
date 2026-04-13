@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	emitter.add_instructions(&CargoBuilder::default().target_triple(true).build()?)?;
 
-	// Disable the git version if installed from <https://crates.io>.
+	// Keep version output working when the crate is built outside a git checkout.
 	if emitter.add_instructions(&GitclBuilder::default().sha(true).build()?).is_err() {
 		println!("cargo:rustc-env=VERGEN_GIT_SHA=crates.io");
 	}

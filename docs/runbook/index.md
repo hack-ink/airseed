@@ -48,4 +48,6 @@ Then structure the body for execution:
 
 ## Current runbooks
 
+- `docs/runbook/offline-generation.md` for the recommended seed-generation environment and operator
+  sequence when hardware wallets are unavailable
 - `docs/runbook/repo-checks.md` for repo-native lint, test, and format validation

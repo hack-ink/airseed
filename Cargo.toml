@@ -2,14 +2,14 @@
 authors     = ["Xavier Lau <x@acg.box>"]
 build       = "build.rs"
 categories  = []
-description = "description_placeholder"
+description = "Offline-first wallet seed generator for air-gapped environments."
 edition     = "2024"
-homepage    = "https://hack.ink/name_placeholder"
-keywords    = []
+homepage    = "https://hack.ink/airseed"
+keywords    = ["airgap", "mnemonic", "offline", "wallet"]
 license     = "GPL-3.0"
-name        = "name_placeholder"
+name        = "airseed"
 readme      = "README.md"
-repository  = "https://github.com/hack-ink/name_placeholder"
+repository  = "https://github.com/hack-ink/airseed"
 resolver    = "3"
 version     = "0.1.0"
 
@@ -26,9 +26,10 @@ vergen-gitcl = { version = "9.1", features = ["cargo"] }
 
 [dependencies]
 # crates.io
-clap               = { version = "4.6", features = ["derive"] }
-color-eyre         = { version = "0.6" }
-directories        = { version = "6.0" }
-tracing            = { version = "0.1" }
-tracing-appender   = { version = "0.2" }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+bip32      = { version = "0.5" }
+bip39      = { version = "2.2", features = ["rand_core"] }
+clap       = { version = "4.6", features = ["derive"] }
+color-eyre = { version = "0.6" }
+rand_core  = { version = "0.6", features = ["getrandom"] }
+sha3       = { version = "0.10" }
+zeroize    = { version = "1.8" }

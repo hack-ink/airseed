@@ -54,4 +54,7 @@ Then keep the body explicit:
 
 ## Current specs
 
-- `docs/spec/cli.md` for the current command-line and runtime bootstrap contract
+- `docs/spec/project-boundaries.md` for the product scope, secret-handling rules, and safety
+  boundaries that future implementation must preserve
+- `docs/spec/cli.md` for the current scaffold binary, argument surface, and runtime bootstrap
+  contract

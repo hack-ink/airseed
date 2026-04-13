@@ -17,6 +17,11 @@ The split below is by question type, not by human-versus-agent audience.
 
 ## Routing matrix
 
+- Need the project's safety boundaries or future implementation limits ->
+  `docs/spec/project-boundaries.md`
+- Need the current checked-in binary behavior or scaffold runtime contract -> `docs/spec/cli.md`
+- Need the currently recommended offline seed-generation environment and operator sequence ->
+  `docs/runbook/offline-generation.md`
 - Need contracts, invariants, schemas, enums, state machines, or required behavior ->
   `docs/spec/`
 - Need runbooks, migrations, validation steps, troubleshooting, or operational sequences ->
