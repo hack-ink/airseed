@@ -36,5 +36,5 @@ Start each decision record with:
 
 ## Current decision records
 
-No durable decision records have been written yet. Add one when a tradeoff needs to remain
-discoverable beyond commit history and code comments.
+- `docs/decisions/offline-generation-environment.md` for the accepted ranking of hardware wallets,
+  Tails, virtual machines, and Docker for the current operator workflow

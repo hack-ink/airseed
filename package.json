@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cross-check": "node scripts/cross-check-address.mjs"
+  },
+  "dependencies": {
+    "ethers": "6.15"
+  }
+}
