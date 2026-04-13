@@ -41,9 +41,20 @@ impl Cli {
 				},
 			)?,
 			Command::Derive(arguments) => {
-				let mnemonic = match (&arguments.mnemonic, arguments.stdin) {
-					(Some(mnemonic), false) => mnemonic.clone(),
-					(None, true) => wallet::read_secret_from_stdin()?,
+				let options = wallet::GenerationOptions {
+					path: arguments.path().to_owned(),
+					show_mnemonic: arguments.show_mnemonic(),
+					show_seed: arguments.show_seed(),
+					show_private_key: arguments.show_private_key(),
+				};
+
+				match (&arguments.mnemonic, arguments.stdin) {
+					(Some(mnemonic), false) => wallet::derive(mnemonic, &options)?,
+					(None, true) => {
+						let mnemonic = wallet::read_secret_from_stdin()?;
+
+						wallet::derive_secret(mnemonic, &options)?
+					},
 					(Some(_), true) => {
 						return Err(eyre::eyre!(
 							"Use either --mnemonic or --stdin for derive, not both."
@@ -54,17 +65,7 @@ impl Cli {
 							"Provide a mnemonic with --mnemonic or pipe one in with --stdin."
 						));
 					},
-				};
-
-				wallet::derive(
-					&mnemonic,
-					&wallet::GenerationOptions {
-						path: arguments.path().to_owned(),
-						show_mnemonic: arguments.show_mnemonic(),
-						show_seed: arguments.show_seed(),
-						show_private_key: arguments.show_private_key(),
-					},
-				)?
+				}
 			},
 		};
 

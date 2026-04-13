@@ -71,13 +71,21 @@ pub fn generate(word_count: usize, options: &GenerationOptions) -> Result<Wallet
 
 pub fn derive(mnemonic: &str, options: &GenerationOptions) -> Result<WalletMaterial> {
 	let normalized = normalize_mnemonic(mnemonic);
-	let mnemonic = Mnemonic::parse_normalized(&normalized)?;
 
-	derive_material(mnemonic, options)
+	derive_normalized_mnemonic(normalized.as_str(), options)
 }
 
-pub fn read_secret_from_stdin() -> Result<String> {
-	let mut buffer = String::new();
+pub fn derive_secret(
+	mnemonic: Zeroizing<String>,
+	options: &GenerationOptions,
+) -> Result<WalletMaterial> {
+	let normalized = normalize_mnemonic(mnemonic.as_str());
+
+	derive_normalized_mnemonic(normalized.as_str(), options)
+}
+
+pub fn read_secret_from_stdin() -> Result<Zeroizing<String>> {
+	let mut buffer = Zeroizing::new(String::new());
 
 	io::stdin().read_to_string(&mut buffer)?;
 
@@ -95,6 +103,15 @@ pub fn validate_word_count(word_count: usize) -> Result<usize> {
 			"Unsupported mnemonic length {word_count}. Use one of: 12, 15, 18, 21, 24."
 		)),
 	}
+}
+
+fn derive_normalized_mnemonic(
+	normalized: &str,
+	options: &GenerationOptions,
+) -> Result<WalletMaterial> {
+	let mnemonic = Mnemonic::parse_normalized(normalized)?;
+
+	derive_material(mnemonic, options)
 }
 
 fn derive_material(mnemonic: Mnemonic, options: &GenerationOptions) -> Result<WalletMaterial> {
@@ -162,8 +179,20 @@ fn checksum_ethereum_address(address: [u8; 20]) -> String {
 	checksummed
 }
 
-fn normalize_mnemonic(input: &str) -> String {
-	input.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>().join(" ")
+fn normalize_mnemonic(input: &str) -> Zeroizing<String> {
+	let mut normalized = Zeroizing::new(String::with_capacity(input.len()));
+
+	for word in input.split_whitespace() {
+		if !normalized.is_empty() {
+			normalized.push(' ');
+		}
+
+		for ch in word.chars() {
+			normalized.extend(ch.to_lowercase());
+		}
+	}
+
+	normalized
 }
 
 fn encode_prefixed_hex(bytes: &[u8]) -> String {
@@ -185,12 +214,36 @@ fn encode_hex(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
+	use zeroize::Zeroizing;
+
 	use crate::wallet::{self, DEFAULT_DERIVATION_PATH, GenerationOptions};
 
 	#[test]
 	fn derive_matches_known_hardhat_account() {
 		let material = wallet::derive(
 			"test test test test test test test test test test test junk",
+			&GenerationOptions {
+				path: String::from(DEFAULT_DERIVATION_PATH),
+				show_mnemonic: false,
+				show_seed: false,
+				show_private_key: true,
+			},
+		)
+		.expect("known mnemonic should derive");
+
+		assert_eq!(material.address, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+		assert_eq!(
+			material.private_key_hex.as_deref(),
+			Some("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+		);
+	}
+
+	#[test]
+	fn derive_secret_matches_known_hardhat_account() {
+		let material = wallet::derive_secret(
+			Zeroizing::new(String::from(
+				"test test test test test test test test test test test junk",
+			)),
 			&GenerationOptions {
 				path: String::from(DEFAULT_DERIVATION_PATH),
 				show_mnemonic: false,
@@ -224,7 +277,7 @@ mod tests {
 
 	#[test]
 	fn normalize_mnemonic_collapses_whitespace() {
-		assert_eq!(wallet::normalize_mnemonic("  TEST\n test\tjunk  "), "test test junk");
+		assert_eq!(wallet::normalize_mnemonic("  TEST\n test\tjunk  ").as_str(), "test test junk");
 	}
 
 	#[test]
