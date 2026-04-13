@@ -54,23 +54,26 @@ jobs:
       - name: Pack (macOS)
         if: matrix.target.os == 'macos-latest'
         run: |
-          mv target/${{ matrix.target.name }}/final-release/${{ matrix.target.binary }} airseed-${{ matrix.target.name }}
+          mv target/${{ matrix.target.name }}/final-release/${{ matrix.target.binary }} airseed
+          zip airseed-${{ matrix.target.name }}.zip airseed
 
       - name: Pack (Windows)
         if: matrix.target.os == 'windows-latest'
         run: |
-          mv target/${{ matrix.target.name }}/final-release/${{ matrix.target.binary }} airseed-${{ matrix.target.name }}.exe
+          mv target/${{ matrix.target.name }}/final-release/${{ matrix.target.binary }} airseed.exe
+          Compress-Archive -Path airseed.exe -DestinationPath airseed-${{ matrix.target.name }}.zip
 
       - name: Pack (Linux)
         if: matrix.target.os == 'ubuntu-latest'
         run: |
-          mv target/${{ matrix.target.name }}/final-release/${{ matrix.target.binary }} airseed-${{ matrix.target.name }}
+          mv target/${{ matrix.target.name }}/final-release/${{ matrix.target.binary }} airseed
+          tar -czvf airseed-${{ matrix.target.name }}.tar.gz airseed
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: airseed-${{ matrix.target.name }}
-          path: airseed-${{ matrix.target.name }}*
+          path: airseed-${{ matrix.target.name }}.*
           retention-days: 1
 
   # release:
